@@ -1,9 +1,3 @@
-# vaulter
-Simple HashiCorp vault client wrapper for configuring services
-
-## Usage example
-
-```go
 package example
 
 import "github.com/zspkg/vaulter"
@@ -27,4 +21,3 @@ func GetFooConfig() (FooConfig, error) {
 
 	return cfg, nil
 }
-```
