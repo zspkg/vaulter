@@ -11,8 +11,8 @@ import "github.com/zspkg/vaulter"
 const fooVaultSecretKey = "key"
 
 type FooConfig struct {
-	Foo string `json:"foo_key"`
-	Bar int    `json:"bar_secret"`
+	Foo string `fig:"foo_key,required"`
+	Bar int    `fig:"bar_secret,required"`
 }
 
 func GetFooConfig() (FooConfig, error) {
