@@ -18,7 +18,7 @@ type FooConfig struct {
 func GetFooConfig() (FooConfig, error) {
 	var (
 		cfg         FooConfig
-		vaultGetter = vaulter.MustFromEnv()
+		vaultGetter = vaulter.MustFromEnv(vaulter.AuthTypeToken)
 	)
 
 	if err := vaultGetter.GetVaultSecret(fooVaultSecretKey, &cfg, nil); err != nil {

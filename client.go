@@ -7,15 +7,6 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-const (
-	// ENV variables
-	vaultPathEnv  = "VAULT_PATH"
-	vaultTokenEnv = "VAULT_TOKEN"
-
-	// Path variables
-	vaultMountPath = "secret"
-)
-
 var ErrNoVault = errors.New("no vault configured")
 
 // vaulter is a HashiCorp vault wrapper that

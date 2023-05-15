@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func FromEnv() (Vaulter, error) {
+func tokenFromEnv() (Vaulter, error) {
 	vaultPath, vaultToken := os.Getenv(vaultPathEnv), os.Getenv(vaultTokenEnv)
 	if vaultPath == "" || vaultToken == "" {
 		return nil, ErrNoVault
@@ -25,11 +25,19 @@ func FromEnv() (Vaulter, error) {
 	return &vaulter{vaultClient}, nil
 }
 
-func MustFromEnv() Vaulter {
-	client, err := FromEnv()
-	if err != nil {
-		panic(errors.Wrap(err, "failed to set up vaulter vaulter from environment"))
-	}
+func MustFromEnv(authType AuthType) Vaulter {
+	switch authType {
+	case AuthTypeToken:
+		client, err := tokenFromEnv()
+		if err != nil {
+			panic(errors.Wrap(err, "failed to set up vaulter vaulter from environment"))
+		}
 
-	return client
+		return client
+	case AuthTypeCertificate:
+		//TODO: IMPLEMENT ME
+		panic("Not implemented yet")
+	default:
+		panic("unknown auth type")
+	}
 }
