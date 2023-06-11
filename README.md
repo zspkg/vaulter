@@ -1,4 +1,7 @@
-# vaulter
+# Vaulter
+[![Go Reference](https://pkg.go.dev/badge/github.com/zspkg/vaulter.svg)](https://pkg.go.dev/github.com/zspkg/vaulter)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zspkg/vaulter)](https://goreportcard.com/report/github.com/zspkg/vaulter)
+
 Simple HashiCorp vault client wrapper for configuring services
 
 ## Usage example
