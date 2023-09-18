@@ -2,14 +2,21 @@ package vaulter
 
 import (
 	vault "github.com/hashicorp/vault/api"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"os"
 )
 
-func tokenFromEnv() (Vaulter, error) {
-	vaultPath, vaultToken := os.Getenv(vaultPathEnv), os.Getenv(vaultTokenEnv)
+var ErrInvalidEnvs = errors.New("environment variables are not configured properly")
+
+func tokenAuthCliFromEnv() (Vaulter, error) {
+	vaultPath, vaultToken := os.Getenv(EnvVaultPath), os.Getenv(EnvVaultToken)
 	if vaultPath == "" || vaultToken == "" {
-		return nil, ErrNoVault
+		return nil, errors.Wrap(ErrInvalidEnvs, "failed to read envs", logan.F{
+			"vault_path":  vaultPath,
+			"vault_token": vaultToken,
+		})
+
 	}
 
 	cfg := vault.DefaultConfig()
@@ -26,18 +33,65 @@ func tokenFromEnv() (Vaulter, error) {
 }
 
 func MustFromEnv(authType AuthType) Vaulter {
+	var (
+		err    error
+		client Vaulter
+	)
+
 	switch authType {
 	case AuthTypeToken:
-		client, err := tokenFromEnv()
-		if err != nil {
-			panic(errors.Wrap(err, "failed to set up vaulter vaulter from environment"))
+		if client, err = tokenAuthCliFromEnv(); err == nil {
+			return client
 		}
-
-		return client
 	case AuthTypeCertificate:
-		//TODO: IMPLEMENT ME
-		panic("Not implemented yet")
+		panic("not implemented")
 	default:
 		panic("unknown auth type")
 	}
+
+	panic(errors.Wrap(err, "failed to set up vaulter from environment"))
+}
+
+// TODO: IMPLEMENT ME
+func certificateAuthCliFromEnv() (Vaulter, error) {
+	vaultPath := os.Getenv(EnvVaultPath)
+	if vaultPath == "" {
+		return nil, errors.Wrap(ErrInvalidEnvs, "failed to read envs", logan.F{
+			"vault_path": vaultPath,
+		})
+	}
+
+	cfg := vault.DefaultConfig()
+	cfg.Address = cfg.Address
+
+	// configuring tls
+	if err := cfg.ConfigureTLS(&vault.TLSConfig{
+		CACert:        "",
+		CACertBytes:   nil,
+		CAPath:        "",
+		ClientCert:    "",
+		ClientKey:     "",
+		TLSServerName: "",
+		Insecure:      false,
+	}); err != nil {
+		return nil, errors.Wrap(err, "failed to configure TLS")
+	}
+
+	// creating client based on cfg
+	vaultClient, err := vault.NewClient(cfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create vault vaultClient")
+	}
+
+	// authorizing vault using certificates and obtaining auth token
+	response, err := vaultClient.Logical().Write("auth/cert/login", map[string]interface{}{
+		"name":        "certificate",
+		"common_name": "your-common-name",
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to authorize vault client")
+	}
+
+	vaultClient.SetToken(response.Auth.ClientToken)
+	return &vaulter{vaultClient}, nil
 }

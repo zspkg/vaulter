@@ -3,34 +3,21 @@ package vaulter
 import (
 	"context"
 	vault "github.com/hashicorp/vault/api"
-	"gitlab.com/distributed_lab/figure"
-	"gitlab.com/distributed_lab/logan/v3/errors"
+	"strings"
 )
 
-var ErrNoVault = errors.New("no vault configured")
-
-// vaulter is a HashiCorp vault wrapper that
-// implements Vaulter interface
+// vaulter is a HashiCorp vault wrapper that implements Vaulter interface
 type vaulter struct {
 	vaultClient *vault.Client
 }
 
-func (c *vaulter) GetVaultSecret(key string, out any, hooks figure.Hooks) error {
-	data, err := c.GetVaultSecretData(key)
-	if err != nil {
-		return errors.Wrap(err, "failed to get secret")
-	}
-
-	return figure.
-		Out(out).
-		With(hooks).
-		From(data).
-		Please()
-}
-
-func (c *vaulter) GetVaultSecretData(key string) (map[string]interface{}, error) {
+func (c *vaulter) GetStringMap(key string) (map[string]interface{}, error) {
 	secret, err := c.vaultClient.KVv2(vaultMountPath).Get(context.Background(), key)
 	if err != nil {
+		if strings.Contains(err.Error(), vault.ErrSecretNotFound.Error()) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

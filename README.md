@@ -1,12 +1,16 @@
 # vaulter
-Simple HashiCorp vault client wrapper for configuring services
+Simple `HashiCorp` vault client wrapper for configs that is compatible with `gitlab.com/distributed_lab/kit/kv` package
 
 ## Usage example
 
 ```go
 package example
 
-import "github.com/zspkg/vaulter"
+import (
+	"github.com/zspkg/vaulter"
+	"gitlab.com/distributed_lab/figure"
+	"gitlab.com/distributed_lab/kit/kv"
+)
 
 const fooVaultSecretKey = "key"
 
@@ -21,8 +25,11 @@ func GetFooConfig() (FooConfig, error) {
 		vaultGetter = vaulter.MustFromEnv(vaulter.AuthTypeToken)
 	)
 
-	if err := vaultGetter.GetVaultSecret(fooVaultSecretKey, &cfg, nil); err != nil {
-		// handle error
+	fooMap := kv.MustGetStringMap(vaultGetter, fooVaultSecretKey)
+
+	// TODO: figure out config from fooMap with your favorite config library
+	if err := figure.Out(&cfg).From(fooMap).Please(); err != nil {
+		return cfg, err
 	}
 
 	return cfg, nil
