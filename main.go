@@ -15,12 +15,9 @@ const (
 
 	// ENV variables
 
-	EnvVaultPath  = "VAULT_PATH"
-	EnvVaultToken = vault.EnvVaultToken
-
-	// Path variables
-
-	vaultMountPath = "secret"
+	EnvVaultPath        = "VAULT_PATH"
+	EnvVaultToken       = vault.EnvVaultToken
+	EnvVaultKVMountPath = "VAULT_KV_MOUNT_PATH"
 )
 
 type Vaulter interface{ kv.Getter }

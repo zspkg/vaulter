@@ -10,11 +10,16 @@ import (
 var ErrInvalidEnvs = errors.New("environment variables are not configured properly")
 
 func tokenAuthCliFromEnv() (Vaulter, error) {
-	vaultPath, vaultToken := os.Getenv(EnvVaultPath), os.Getenv(EnvVaultToken)
-	if vaultPath == "" || vaultToken == "" {
-		return nil, errors.Wrap(ErrInvalidEnvs, "failed to read envs", logan.F{
-			"vault_path":  vaultPath,
-			"vault_token": vaultToken,
+	var (
+		vaultPath        = os.Getenv(EnvVaultPath)
+		vaultToken       = os.Getenv(EnvVaultToken)
+		vaultKvMountPath = os.Getenv(EnvVaultKVMountPath)
+	)
+	if vaultPath == "" || vaultToken == "" || vaultKvMountPath == "" {
+		return nil, errors.Wrap(ErrInvalidEnvs, "invalid envs", logan.F{
+			"vault_path":          vaultPath,
+			"vault_token":         vaultToken,
+			"vault_kv_mount_path": vaultKvMountPath,
 		})
 
 	}
@@ -29,7 +34,7 @@ func tokenAuthCliFromEnv() (Vaulter, error) {
 
 	vaultClient.SetToken(vaultToken)
 
-	return &vaulter{vaultClient}, nil
+	return &vaulter{vaultClient, vaultKvMountPath}, nil
 }
 
 func MustFromEnv(authType AuthType) Vaulter {
@@ -54,10 +59,11 @@ func MustFromEnv(authType AuthType) Vaulter {
 
 // TODO: IMPLEMENT ME
 func certificateAuthCliFromEnv() (Vaulter, error) {
-	vaultPath := os.Getenv(EnvVaultPath)
-	if vaultPath == "" {
+	vaultPath, vaultKvMountPath := os.Getenv(EnvVaultPath), os.Getenv(EnvVaultKVMountPath)
+	if vaultPath == "" || vaultKvMountPath == "" {
 		return nil, errors.Wrap(ErrInvalidEnvs, "failed to read envs", logan.F{
-			"vault_path": vaultPath,
+			"vault_path":          vaultPath,
+			"vault_kv_mount_path": vaultKvMountPath,
 		})
 	}
 
@@ -93,5 +99,5 @@ func certificateAuthCliFromEnv() (Vaulter, error) {
 	}
 
 	vaultClient.SetToken(response.Auth.ClientToken)
-	return &vaulter{vaultClient}, nil
+	return &vaulter{vaultClient, vaultKvMountPath}, nil
 }
